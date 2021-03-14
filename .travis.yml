@@ -1,0 +1,10 @@
+---
+sudo: required
+language: python
+services:
+  - docker
+install:
+  - python3 -m pip install molecule
+  - python3 -m pip install molecule-docker
+script:
+  - molecule test -s docker
