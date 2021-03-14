@@ -1,10 +1,11 @@
 ---
-sudo: required
+dist: xenial
+os: linux
 language: python
 services:
   - docker
 install:
-  - python3 -m pip install molecule
-  - python3 -m pip install molecule-docker
+  - pip install ansible~=2.9.0
+  - pip install molecule[docker,lint]
 script:
   - molecule test -s docker
