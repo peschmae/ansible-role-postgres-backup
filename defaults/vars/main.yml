@@ -1,0 +1,9 @@
+---
+postgres_backup_cronjob_special_time:
+  - annually
+  - daily
+  - hourly
+  - monthly
+  - reboot
+  - weekly
+  - yearly
