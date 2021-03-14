@@ -19,7 +19,7 @@ BACKUP_DIR={{ postgres_backup_directory }}
 # List of strings to match against in database name, separated by space or comma, for which we only
 # wish to keep a backup of the schema, not the data. Any database names which contain any of these
 # values will be considered candidates. (e.g. "system_log" will match "dev_system_log_2010-01")
-SCHEMA_ONLY_LIST="{{ postgres_backup_schema_only | join(,) }}"
+SCHEMA_ONLY_LIST="{{ postgres_backup_schema_only | join(',') }}"
 
 # Will produce a custom-format backup if set to "yes"
 ENABLE_CUSTOM_BACKUPS={{ 'yes' if postgres_backup_custom else 'no' }}

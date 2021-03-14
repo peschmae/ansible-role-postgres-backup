@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: postgresql_backup
   author: Mathias Petermann
   description: Postgres backups on linux
 
@@ -26,17 +27,16 @@ galaxy_info:
   # To view available platforms and versions (or releases), visit:
   # https://galaxy.ansible.com/api/v1/platforms/
   #
-  # platforms:
-  # - name: Fedora
-  #   versions:
-  #   - all
-  #   - 25
-  # - name: SomePlatform
-  #   versions:
-  #   - all
-  #   - 1.0
-  #   - 7
-  #   - 99.99
+  platforms:
+    - name: Fedora
+      versions:
+       - all
+    - name: Debian
+      versions:
+       - all
+    - name: EL
+      versions:
+       - all
 
   galaxy_tags:
     - postgres
@@ -51,4 +51,3 @@ galaxy_info:
 dependencies: []
   # List your role dependencies here, one per line. Be sure to remove the '[]' above,
   # if you add dependencies to this list.
-  

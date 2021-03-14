@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  
+  tasks:
+    - name: "Include ansible-role-postgresql-backup"
+      include_role:
+        name: "ansible-role-postgresql-backup"

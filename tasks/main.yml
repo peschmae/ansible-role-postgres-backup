@@ -1,4 +1,11 @@
 ---
+- name: create backup-scripts dir
+  file:
+    dest: "{{ postgres_backup_script_location }}"
+    state: directory
+    owner: "{{ postgres_backup_script_user }}"
+    mode: 0764
+
 # tasks file for ansible-role-postgres-backup
 - name: copy rotated backup script
   copy:
@@ -40,8 +47,8 @@
         day: "{{ psql_backup_cron_schedule[2] }}"
         month: "{{ psql_backup_cron_schedule[3] }}"
         weekday: "{{ psql_backup_cron_schedule[4] }}"
-        state: "{{ 'present' if postgres_backup_cronjob else 'absent' }}"
-  when: 
+        state: "{{ 'present' if postgres_backup_cronjob_enabled else 'absent' }}"
+  when:
   - postgres_backup_cronjob_enabled
   - postgres_backup_cronjob_schedule not in postgres_backup_cronjob_special_time
 
@@ -54,6 +61,6 @@
         user: "{{ postgres_backup_script_user }}"
         special_time: "{{ postgres_backup_cronjob_schedule }}"
         state: "{{ 'present' if postgres_backup_cronjob else 'absent' }}"
-  when: 
+  when:
   - postgres_backup_cronjob_enabled
   - postgres_backup_cronjob_schedule in postgres_backup_cronjob_special_time

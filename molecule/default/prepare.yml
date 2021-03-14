@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  tasks:
+    - name: install package dependencies
+      package:
+        name: "{{ prepare_package_names }}"
+        state: present
