@@ -1,5 +1,6 @@
 Postgres Backup
 =========
+![travis-ci](https://travis-ci.com/peschmae/ansible-role-postgresql-backup.svg?branch=main)
 
 This role creates the scripts, and cronjobs necessary to backup all your postgres databases.
 The scripts are copied from: https://wiki.postgresql.org/wiki/Automated_Backup_on_Linux
