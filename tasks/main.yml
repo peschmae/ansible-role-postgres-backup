@@ -1,6 +1,6 @@
 ---
 - name: create backup-scripts dir
-  file:
+  ansible.builtin.file:
     dest: "{{ postgres_backup_script_location }}"
     state: directory
     owner: "{{ postgres_backup_script_user }}"
@@ -8,7 +8,7 @@
 
 # tasks file for ansible-role-postgres-backup
 - name: copy rotated backup script
-  copy:
+  ansible.builtin.copy:
     src: files/pg_backup_rotated.sh
     dest: "{{ postgres_backup_script_location }}/pg_backup.sh"
     owner: "{{ postgres_backup_script_user }}"
@@ -16,7 +16,7 @@
   when: postgres_backup_rotate
 
 - name: copy backup script
-  copy:
+  ansible.builtin.copy:
     src: files/pg_backup.sh
     dest: "{{ postgres_backup_script_location }}/pg_backup.sh"
     owner: "{{ postgres_backup_script_user }}"
@@ -24,7 +24,7 @@
   when: not postgres_backup_rotate
 
 - name: create pg_backup.config from template
-  template:
+  ansible.builtin.template:
     src: templates/pg_backup.config.j2
     dest: "{{ postgres_backup_script_location }}/pg_backup.config"
     owner: "{{ postgres_backup_script_user }}"
@@ -34,11 +34,11 @@
 - name: create cronjob from cronjob syntax
   block:
     - name: convert cron syntax into list (thanks ansible...)
-      set_fact:
+      ansible.builtin.set_fact:
         psql_backup_cron_schedule: "{{ postgres_backup_cronjob_schedule.split(' ') }}"
 
     - name: create cronjob entry
-      cron:
+      ansible.builtin.cron:
         name: "backup all postgres databases"
         job: "{{ postgres_backup_script_location }}/pg_backup.sh"
         user: "{{ postgres_backup_script_user }}"
@@ -55,7 +55,7 @@
 - name: create cronjob with special time syntax
   block:
     - name: create cronjob entry
-      cron:
+      ansible.builtin.cron:
         name: "backup all postgres databases"
         job: "{{ postgres_backup_script_location }}/pg_backup.sh"
         user: "{{ postgres_backup_script_user }}"
