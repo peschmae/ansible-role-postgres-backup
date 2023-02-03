@@ -44,15 +44,15 @@ fi
 ### INITIALISE DEFAULTS ###
 ###########################
 
-if [ ! $HOSTNAME ]; then
-	HOSTNAME="localhost"
+if [ $PG_SERVER ]; then
+	PG_SERVER="-h $PG_SERVER"
 fi;
 
 if [ ! $USERNAME ]; then
 	USERNAME="postgres"
 fi;
 
-
+echo $PG_SERVER
 ###########################
 #### START THE BACKUPS ####
 ###########################
@@ -68,7 +68,7 @@ function perform_backups()
 		echo "Cannot create backup directory in $FINAL_BACKUP_DIR. Go and fix it!" 1>&2
 		exit 1;
 	fi;
-	
+
 	#######################
 	### GLOBALS BACKUPS ###
 	#######################
@@ -81,7 +81,7 @@ function perform_backups()
 		    echo "Globals backup"
 
 		    set -o pipefail
-		    if ! pg_dumpall -g -h "$HOSTNAME" -U "$USERNAME" | gzip > $FINAL_BACKUP_DIR"globals".sql.gz.in_progress; then
+		    if ! pg_dumpall -g $PG_SERVER -U "$USERNAME" | gzip > $FINAL_BACKUP_DIR"globals".sql.gz.in_progress; then
 		            echo "[!!ERROR!!] Failed to produce globals backup" 1>&2
 		    else
 		            mv $FINAL_BACKUP_DIR"globals".sql.gz.in_progress $FINAL_BACKUP_DIR"globals".sql.gz
@@ -95,34 +95,34 @@ function perform_backups()
 	###########################
 	### SCHEMA-ONLY BACKUPS ###
 	###########################
-	
+
 	for SCHEMA_ONLY_DB in ${SCHEMA_ONLY_LIST//,/ }
 	do
 	        SCHEMA_ONLY_CLAUSE="$SCHEMA_ONLY_CLAUSE or datname ~ '$SCHEMA_ONLY_DB'"
 	done
-	
+
 	SCHEMA_ONLY_QUERY="select datname from pg_database where false $SCHEMA_ONLY_CLAUSE order by datname;"
-	
+
 	echo -e "\n\nPerforming schema-only backups"
 	echo -e "--------------------------------------------\n"
-	
-	SCHEMA_ONLY_DB_LIST=`psql -h "$HOSTNAME" -U "$USERNAME" -At -c "$SCHEMA_ONLY_QUERY" postgres`
-	
+
+	SCHEMA_ONLY_DB_LIST=`psql $PG_SERVER -U "$USERNAME" -At -c "$SCHEMA_ONLY_QUERY" postgres`
+
 	echo -e "The following databases were matched for schema-only backup:\n${SCHEMA_ONLY_DB_LIST}\n"
-	
+
 	for DATABASE in $SCHEMA_ONLY_DB_LIST
 	do
 	        echo "Schema-only backup of $DATABASE"
 		set -o pipefail
-	        if ! pg_dump -Fp -s -h "$HOSTNAME" -U "$USERNAME" "$DATABASE" | gzip > $FINAL_BACKUP_DIR"$DATABASE"_SCHEMA.sql.gz.in_progress; then
+	        if ! pg_dump -Fp -s $PG_SERVER -U "$USERNAME" "$DATABASE" | gzip > $FINAL_BACKUP_DIR"$DATABASE"_SCHEMA.sql.gz.in_progress; then
 	                echo "[!!ERROR!!] Failed to backup database schema of $DATABASE" 1>&2
 	        else
 	                mv $FINAL_BACKUP_DIR"$DATABASE"_SCHEMA.sql.gz.in_progress $FINAL_BACKUP_DIR"$DATABASE"_SCHEMA.sql.gz
 	        fi
 	        set +o pipefail
 	done
-	
-	
+
+
 	###########################
 	###### FULL BACKUPS #######
 	###########################
@@ -137,27 +137,27 @@ function perform_backups()
 	echo -e "\n\nPerforming full backups"
 	echo -e "--------------------------------------------\n"
 
-	for DATABASE in `psql -h "$HOSTNAME" -U "$USERNAME" -At -c "$FULL_BACKUP_QUERY" postgres`
+	for DATABASE in `psql $PG_SERVER -U "$USERNAME" -At -c "$FULL_BACKUP_QUERY" postgres`
 	do
 		if [ $ENABLE_PLAIN_BACKUPS = "yes" ]
 		then
 			echo "Plain backup of $DATABASE"
-	 
+
 			set -o pipefail
-			if ! pg_dump -Fp -h "$HOSTNAME" -U "$USERNAME" "$DATABASE" | gzip > $FINAL_BACKUP_DIR"$DATABASE".sql.gz.in_progress; then
+			if ! pg_dump -Fp $PG_SERVER -U "$USERNAME" "$DATABASE" | gzip > $FINAL_BACKUP_DIR"$DATABASE".sql.gz.in_progress; then
 				echo "[!!ERROR!!] Failed to produce plain backup database $DATABASE" 1>&2
 			else
 				mv $FINAL_BACKUP_DIR"$DATABASE".sql.gz.in_progress $FINAL_BACKUP_DIR"$DATABASE".sql.gz
 			fi
 			set +o pipefail
-                        
+
 		fi
 
 		if [ $ENABLE_CUSTOM_BACKUPS = "yes" ]
 		then
 			echo "Custom backup of $DATABASE"
-	
-			if ! pg_dump -Fc -h "$HOSTNAME" -U "$USERNAME" "$DATABASE" -f $FINAL_BACKUP_DIR"$DATABASE".custom.in_progress; then
+
+			if ! pg_dump -Fc $PG_SERVER -U "$USERNAME" "$DATABASE" -f $FINAL_BACKUP_DIR"$DATABASE".custom.in_progress; then
 				echo "[!!ERROR!!] Failed to produce custom backup database $DATABASE"
 			else
 				mv $FINAL_BACKUP_DIR"$DATABASE".custom.in_progress $FINAL_BACKUP_DIR"$DATABASE".custom
@@ -177,9 +177,9 @@ if [ $DAY_OF_MONTH -eq 1 ];
 then
 	# Delete all expired monthly directories
 	find $BACKUP_DIR -maxdepth 1 -name "*-monthly" -exec rm -rf '{}' ';'
-	        	
+
 	perform_backups "-monthly"
-	
+
 	exit 0;
 fi
 
@@ -192,9 +192,9 @@ if [ $DAY_OF_WEEK = $DAY_OF_WEEK_TO_KEEP ];
 then
 	# Delete all expired weekly directories
 	find $BACKUP_DIR -maxdepth 1 -mtime +$EXPIRED_DAYS -name "*-weekly" -exec rm -rf '{}' ';'
-	        	
+
 	perform_backups "-weekly"
-	
+
 	exit 0;
 fi
 

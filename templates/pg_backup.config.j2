@@ -7,7 +7,9 @@
 BACKUP_USER={{ postgres_backup_script_user }}
 
 # Optional hostname to adhere to pg_hba policies.  Will default to "localhost" if none specified.
+{% if postgres_backup_db_hostname %}
 HOSTNAME={{ postgres_backup_db_hostname }}
+{% endif %}
 
 # Optional username to connect to database as.  Will default to "postgres" if none specified.
 USERNAME={{ postgres_backup_db_username }}
